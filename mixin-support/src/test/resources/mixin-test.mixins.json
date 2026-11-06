@@ -1,0 +1,9 @@
+{
+  "required": true,
+  "package": "club.kittenpvp.lintcardboard.mixin.fixture",
+  "mixins": [
+    "GreetingMixin",
+    "BrokenMixin"
+  ],
+  "compatibilityLevel": "JAVA_21"
+}

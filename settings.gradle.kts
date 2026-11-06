@@ -17,5 +17,7 @@ rootProject.name = "lintcardboard"
 include(
     "common",
     "platform-spi",
+    "mixin-support",
     "bootstrap-agent",
+    "live-tests",
 )

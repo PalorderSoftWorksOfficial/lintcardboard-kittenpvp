@@ -7,39 +7,43 @@ Public remote: https://github.com/PalorderSoftWorksOfficial/lintcardboard-kitten
 
 ## Current objective
 
-Begin M0 feasibility research for a multi-platform Fabric-to-Paper compatibility runtime.
+M0 feasibility proof complete for bootstrap ordering; M1 build foundation in
+place. Next: live Paper 26.2 server integration.
 
 ## Verified completed
 
-- Local directory exists on Cluster-0 at /mnt/d/lintcardboard-kittenpvp.
-- Git repository initialized on branch main.
-- GitHub CLI authenticated as PalorderSoftWorksOfficial.
-- Public GitHub repository created: PalorderSoftWorksOfficial/lintcardboard-kittenpvp.
-- GitHub API confirms visibility=public and default branch=main.
-- Initial documentation commit pushed to origin/main.
-- Public README fetched successfully from the GitHub main branch.
-- AGENTS.md is a short task router; WORK-STATE.md is the durable checkpoint.
-- Documentation covers architecture, bootstrap, module boundaries, loader, transformations, platforms, lifecycle/threading, API compatibility, tests, release process and ADRs.
-- Runtime implementation has not been built yet.
+- Pinned upstream versions: Paper 26.2 build 129 stable, Purpur 2633 stable,
+  Leaf 26.2 experimental 123, Folia beta only, Fabric Loader 0.20.1 stable,
+  Loom 1.17 with Gradle 9.5.1, Mixin fork 0.17.3, Kotlin 2.4.21, ASM 9.9,
+  JUnit 5.13.4, Java 25 toolchain with JVM target 25.
+- Gradle Kotlin DSL multi-project build with wrapper 9.5.1, version catalog,
+  and modules common, platform-spi, bootstrap-agent.
+- Java instrumentation agent proves a controlled class is transformed before
+  JVM definition: registration, transform and definition timestamps are
+  recorded and asserted in order, with class identity and marker checks.
+- Mandatory transformation refusal exits nonzero and is recorded as FAILURE,
+  never as success.
+- Capability-based platform detector covers Paper, Purpur, Leaf, Pufferfish,
+  Gale, Folia, generic forks and unknown servers with preserved evidence.
+- Fresh `./gradlew test --rerun-tasks`: 11 tests, 0 failures, BUILD SUCCESSFUL.
+  Clean `./gradlew clean build`: BUILD SUCCESSFUL.
+- ADR 0004 records versions and the agent-first proof decision.
 
 ## Current milestone
 
-M0 — Feasibility.
+M0 exit evidence recorded for the controlled-class proof. M1 foundation done.
+Full server bootstrap comparison still open per ADR 0002.
 
 ## Next actions
 
-1. Inspect current Paper 26.2 bootstrap and launch path.
-2. Inspect current Fabric Loader launch, Knot, game-provider and transformation integration.
-3. Verify current compatible Java, Gradle, Kotlin, Loom, Loader, API, Mixin and mappings versions.
-4. Compare instrumentation agent, launcher and server-side bootstrap options.
-5. Build a minimal reproducible proof of loader/class identity and pre-definition transformation.
-6. Verify clean server startup and shutdown.
-7. Continue to platform adapter proof on Purpur and Leaf when matching 26.2 builds are available.
+1. Run the agent against a live Paper 26.2 build 129 server and record
+   startup, transformation and shutdown evidence.
+2. Repeat on Purpur 2633 and Leaf 123 when builds are available locally.
+3. Begin M2 loader vertical slice with real fabric.mod.json fixtures.
 
 ## Verification log
 
-- Local branch: main.
-- Initial documentation commit pushed to origin/main.
-- GitHub repository visibility verified as public.
-- Public README fetched successfully: https://github.com/PalorderSoftWorksOfficial/lintcardboard-kittenpvp/blob/main/README.md
-- No Gradle build or runtime integration test has been run.
+- `./gradlew test --rerun-tasks`: 11 tests, 0 failures, BUILD SUCCESSFUL.
+- `./gradlew clean build`: BUILD SUCCESSFUL.
+- Agent jar verified to contain Premain-Class manifest and shaded ASM.
+- No Paper server integration test has been run yet.

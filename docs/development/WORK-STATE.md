@@ -7,49 +7,46 @@ Public remote: https://github.com/PalorderSoftWorksOfficial/lintcardboard-kitten
 
 ## Current objective
 
-Mixin wrapper proven live on Paper 26.2 build 135. Next: repeat the probe
-on Purpur and Leaf, then start the M2 loader vertical slice.
+Leaf-style branding and the hybrid bridge plugin are proven live on Paper
+26.2 build 135. Next: wire real Paper events into BridgeHub dispatch, then
+start the M2 loader vertical slice.
 
 ## Verified completed
 
-- Pinned Paper 26.2 build 135 stable (sha256
-  ef3dbc68b013deafdbbee3bebf1ba351671ebcda94a8f136809b7532d5ba2fe1).
-  Paper's fill-data object URLs returned 404 for all tested builds, so the
-  live test downloads through the mcjarhub mirror and verifies the
-  PaperMC-published checksum first.
-- New `mixin-support` module wraps sponge-mixin 0.17.3+mixin.0.8.7 with our
-  own `IMixinService`, blackboard, engine driver and agent transformer,
-  following Horizon's proven shape without copying its launcher.
-- `livePaperTest` boots the real Paper 26.2-135 server with the agent and a
-  `BrandMixin` overwrite of `ServerBuildInfoImpl.brandName`. The live log
-  shows `This server is running (lintcardboard) Paper version ...`, the
-  server reaches `Done (15.031s)!`, stops cleanly, and the verdict file
-  records SUCCESS for install, engine start, target transformation,
-  branding, boot and exit.
-- Fresh `./gradlew test --rerun-tasks`: 13 tests, 0 failures.
-- ADR 0005 records the wrapper decision and every hard finding:
-  `required: true` configs, release-21 mixin classes under JAVA_21,
-  shaded-ASM `Implementation-Version`, the transformer gate for
-  Paperclip's late server loader, and the `@Inject` callback visibility
-  limit (overwrites only, until loader bridging is proven).
-- Earlier M0 proof and platform detection still pass unchanged.
+- New `server-brand` module: id `lintcardboard`, name `LintCardboard`,
+  version `0.1.0`, startup-line format, all unit-tested. Release 21 so the
+  mixin sources share the exact constants (they inline, no new game
+  runtime dependency).
+- New `plugin` module against real paper-api 26.2.build.135-stable:
+  `LintCardboardPlugin` owns a pure-Java `BridgeHub` (ordered forwarding,
+  null skipping, loud hook-named failures, unregister handles), logs the
+  brand through the Bukkit API, and writes evidence. 5 hub tests green.
+- `livePaperTest` now proves the full hybrid story: the live log shows
+  `This server is running LintCardboard version ...`, both brand mixins
+  transformed, the plugin observes `Bukkit.getServer().getName()` as
+  `LintCardboard` with the bridge active, the server reaches `Done`, and
+  the verdict records SUCCESS on all eight checks.
+- Fresh `./gradlew test --rerun-tasks`: 20 tests, 0 failures.
+- ADR 0006 records the brand and bridge design, including the `plugin`
+  project cross-reference quirk and the deterministic jar path fix.
+- Earlier M0/M1 proofs and ADR 0005 still hold unchanged.
 
 ## Current milestone
 
-M0 exit evidence complete including live-server mixin application. M1
-foundation extended with mixin-support and live-tests.
+M1 foundation extended with brand and hybrid bridge, both live-proven.
+`@Inject` callbacks remain out of scope until loader bridging is solved.
 
 ## Next actions
 
-1. Run `livePaperTest` against Purpur 26.2 and Leaf 26.2 builds and record
-   per-fork verdicts through the platform capability detector.
-2. Begin M2 loader vertical slice with real fabric.mod.json fixtures.
-3. Solve game-loader visibility for `@Inject` callbacks and prove it the
-   same live way before claiming injector support.
+1. Wire Paper events (join, tick, enable phases) into BridgeHub dispatch
+   with a mod-side listener fixture and extend the live verdict.
+2. Run `livePaperTest` against Purpur 26.2 and Leaf 26.2 and record
+   per-fork verdicts.
+3. Begin M2 loader vertical slice with real fabric.mod.json fixtures.
 
 ## Verification log
 
-- `./gradlew test --rerun-tasks`: 13 tests, 0 failures, BUILD SUCCESSFUL.
+- `./gradlew test --rerun-tasks`: 20 tests, 0 failures, BUILD SUCCESSFUL.
 - `./gradlew :live-tests:livePaperTest`: BUILD SUCCESSFUL, live verdict
-  SUCCESS with brand line observed in server.log.
+  SUCCESS with brand line, plugin evidence and clean exit.
 - No Purpur or Leaf server run has happened yet.

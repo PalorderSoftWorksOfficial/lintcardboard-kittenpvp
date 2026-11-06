@@ -34,6 +34,9 @@ public class LivePaperProbe {
 
     private static int run(Arguments arguments) throws Exception {
         Files.createDirectories(arguments.workDir);
+        Path pluginsDir = arguments.workDir.resolve("plugins");
+        Files.createDirectories(pluginsDir);
+        Files.copy(arguments.pluginJar, pluginsDir.resolve("lintcardboard.jar"), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
         Files.writeString(arguments.workDir.resolve("eula.txt"), "eula=true\n", StandardCharsets.UTF_8);
         Files.writeString(arguments.workDir.resolve("server.properties"), String.join("\n",
             "server-port=25566",
@@ -100,25 +103,32 @@ public class LivePaperProbe {
 
         Properties agentEvidence = readProperties(arguments.agentOut);
         Properties mixinEvidence = readProperties(arguments.mixinOut);
+        Properties pluginEvidence = readProperties(arguments.workDir.resolve("plugins/LintCardboard/lintcardboard-plugin.properties"));
         String transformed = mixinEvidence.getProperty("mixin.transformedClasses", "");
-        boolean targetTransformed = transformed.contains("io.papermc.paper.ServerBuildInfoImpl");
+        boolean brandTransformed = transformed.contains("io.papermc.paper.ServerBuildInfoImpl");
+        boolean modNameTransformed = transformed.contains("net.minecraft.server.MinecraftServer");
+        boolean pluginReady = "LintCardboard".equals(pluginEvidence.getProperty("plugin.brandSeen"))
+            && Boolean.parseBoolean(pluginEvidence.getProperty("plugin.bridgeActive", "false"));
 
         Properties verdict = new Properties();
-        verdict.setProperty("outcome", done && branded && targetTransformed ? "SUCCESS" : "FAILURE");
+        verdict.setProperty("outcome", done && branded && brandTransformed && modNameTransformed && pluginReady ? "SUCCESS" : "FAILURE");
         verdict.setProperty("probe.done", Boolean.toString(done));
         verdict.setProperty("probe.branded", Boolean.toString(branded));
-        verdict.setProperty("probe.targetTransformed", Boolean.toString(targetTransformed));
+        verdict.setProperty("probe.brandTransformed", Boolean.toString(brandTransformed));
+        verdict.setProperty("probe.modNameTransformed", Boolean.toString(modNameTransformed));
+        verdict.setProperty("probe.pluginReady", Boolean.toString(pluginReady));
         verdict.setProperty("probe.exit", Integer.toString(exited ? process.exitValue() : -1));
         verdict.setProperty("probe.agentInstalled", agentEvidence.getProperty("agent.installed", "false"));
         verdict.setProperty("probe.mixinOutcome", mixinEvidence.getProperty("outcome", "missing"));
         store(arguments.verdictOut, verdict);
 
-        if (!done || !branded || !targetTransformed) {
-            System.err.println("Live proof failed: done=" + done + " branded=" + branded + " targetTransformed=" + targetTransformed);
+        if (!done || !branded || !brandTransformed || !modNameTransformed || !pluginReady) {
+            System.err.println("Live proof failed: done=" + done + " branded=" + branded + " brandTransformed=" + brandTransformed + " modNameTransformed=" + modNameTransformed + " pluginReady=" + pluginReady);
             System.err.println("Mixin evidence: " + mixinEvidence);
+            System.err.println("Plugin evidence: " + pluginEvidence);
             return 1;
         }
-        System.out.println("Live proof succeeded: Paper booted with branding mixin applied.");
+        System.out.println("Live proof succeeded: LintCardboard branded server booted with bridge plugin active.");
         return 0;
     }
 
@@ -165,12 +175,13 @@ public class LivePaperProbe {
         }
     }
 
-    record Arguments(Path javaExe, Path paperJar, Path agentJar, Path mixinJar, String mixinConfig, Path workDir, Path agentOut, Path mixinOut, Path verdictOut, String brandMarker, long timeoutSec) {
+    record Arguments(Path javaExe, Path paperJar, Path agentJar, Path mixinJar, Path pluginJar, String mixinConfig, Path workDir, Path agentOut, Path mixinOut, Path verdictOut, String brandMarker, long timeoutSec) {
         static Arguments parse(String[] args) {
             Path javaExe = null;
             Path paperJar = null;
             Path agentJar = null;
             Path mixinJar = null;
+            Path pluginJar = null;
             String mixinConfig = "lintcardboard.mixins.json";
             Path workDir = null;
             Path agentOut = null;
@@ -188,6 +199,7 @@ public class LivePaperProbe {
                     case "--paperJar" -> paperJar = Path.of(entry[1]);
                     case "--agentJar" -> agentJar = Path.of(entry[1]);
                     case "--mixinJar" -> mixinJar = Path.of(entry[1]);
+                    case "--pluginJar" -> pluginJar = Path.of(entry[1]);
                     case "--mixinConfig" -> mixinConfig = entry[1];
                     case "--workDir" -> workDir = Path.of(entry[1]);
                     case "--agentOut" -> agentOut = Path.of(entry[1]);
@@ -199,11 +211,11 @@ public class LivePaperProbe {
                     }
                 }
             }
-            if (javaExe == null || paperJar == null || agentJar == null || mixinJar == null || workDir == null
+            if (javaExe == null || paperJar == null || agentJar == null || mixinJar == null || pluginJar == null || workDir == null
                 || agentOut == null || mixinOut == null || verdictOut == null) {
                 throw new IllegalArgumentException("Missing required probe argument");
             }
-            return new Arguments(javaExe, paperJar, agentJar, mixinJar, mixinConfig, workDir, agentOut, mixinOut, verdictOut, brandMarker, timeoutSec);
+            return new Arguments(javaExe, paperJar, agentJar, mixinJar, pluginJar, mixinConfig, workDir, agentOut, mixinOut, verdictOut, brandMarker, timeoutSec);
         }
     }
 }

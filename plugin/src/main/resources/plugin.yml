@@ -1,0 +1,6 @@
+name: LintCardboard
+version: 0.1.0
+main: club.kittenpvp.lintcardboard.plugin.LintCardboardPlugin
+api-version: '26.2'
+author: LintCardboard
+description: Hybrid bridge that brands the server and forwards mod hooks.

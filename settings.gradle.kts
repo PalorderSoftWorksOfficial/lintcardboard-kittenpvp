@@ -9,6 +9,7 @@ dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         mavenCentral()
+        maven("https://repo.papermc.io/repository/maven-public/")
     }
 }
 
@@ -19,5 +20,7 @@ include(
     "platform-spi",
     "mixin-support",
     "bootstrap-agent",
+    "server-brand",
+    "plugin",
     "live-tests",
 )

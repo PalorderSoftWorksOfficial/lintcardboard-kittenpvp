@@ -39,6 +39,7 @@ sourceSets {
 
 dependencies {
     add("liveMixinImplementation", libs.sponge.mixin)
+    add("liveMixinImplementation", project(":server-brand"))
 }
 
 tasks.named<org.gradle.api.tasks.compile.JavaCompile>("compileLiveMixinJava") {
@@ -96,17 +97,19 @@ val liveMixinJar = tasks.register<org.gradle.jvm.tasks.Jar>("liveMixinJar") {
 }
 
 val agentJarPath = project(":bootstrap-agent").tasks.named<org.gradle.jvm.tasks.Jar>("jar").flatMap { it.archiveFile }
+val pluginJarPath = project(":plugin").layout.buildDirectory.file("libs/lintcardboard-plugin-0.1.0.jar")
 
 tasks.register<JavaExec>("livePaperTest") {
     group = "verification"
     description = "Boots a live Paper 26.2 server with the LintCardboard agent and branding mixin, then verifies the proof."
-    dependsOn("downloadPaper", liveMixinJar, ":bootstrap-agent:jar")
+    dependsOn("downloadPaper", liveMixinJar, ":bootstrap-agent:jar", ":plugin:jar")
     mainClass.set("club.kittenpvp.lintcardboard.live.LivePaperProbe")
     classpath = sourceSets.main.get().runtimeClasspath
     val work = liveDir.map { it.dir("server") }
     val mixinJarFile = liveMixinJar.flatMap { it.archiveFile }
     val agentFile = agentJarPath.get().asFile.absolutePath
     val mixinFile = mixinJarFile.get().asFile.absolutePath
+    val pluginFile = pluginJarPath.get().asFile.absolutePath
     val paperFile = paperJar.get().asFile.absolutePath
     val workPath = work.get().asFile.absolutePath
     val livePath = liveDir.get().asFile.absolutePath
@@ -116,12 +119,13 @@ tasks.register<JavaExec>("livePaperTest") {
         "--paperJar=$paperFile",
         "--agentJar=$agentFile",
         "--mixinJar=$mixinFile",
+        "--pluginJar=$pluginFile",
         "--mixinConfig=lintcardboard.mixins.json",
         "--workDir=$workPath",
         "--agentOut=$workPath/lintcardboard-agent.properties",
         "--mixinOut=$workPath/lintcardboard-mixin.properties",
         "--verdictOut=$livePath/live-verdict.properties",
-        "--brandMarker=(lintcardboard)",
+        "--brandMarker=LintCardboard",
         "--timeoutSec=600",
     )
     timeout.set(Duration.ofMinutes(15))

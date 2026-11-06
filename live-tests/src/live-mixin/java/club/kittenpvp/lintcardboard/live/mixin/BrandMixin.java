@@ -1,5 +1,6 @@
 package club.kittenpvp.lintcardboard.live.mixin;
 
+import club.kittenpvp.lintcardboard.brand.ServerBrand;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 
@@ -7,6 +8,6 @@ import org.spongepowered.asm.mixin.Overwrite;
 public class BrandMixin {
     @Overwrite
     public String brandName() {
-        return "(lintcardboard) Paper";
+        return ServerBrand.NAME;
     }
 }

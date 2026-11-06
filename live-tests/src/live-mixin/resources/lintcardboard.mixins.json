@@ -2,7 +2,8 @@
   "required": true,
   "package": "club.kittenpvp.lintcardboard.live.mixin",
   "mixins": [
-    "BrandMixin"
+    "BrandMixin",
+    "ModNameMixin"
   ],
   "compatibilityLevel": "JAVA_21"
 }
